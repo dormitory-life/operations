@@ -1,4 +1,4 @@
-# dormitory-life — локальный запуск проекта
+# dormitory-life — локальный запуск проекта для разработки
 
 Организация проекта: https://github.com/dormitory-life
 

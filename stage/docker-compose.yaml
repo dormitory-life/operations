@@ -1,0 +1,110 @@
+name: dormitory-life-stage
+
+services:
+  db:
+    image: postgres:15
+    container_name: dormitory-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: db
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d db"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  storage:
+    image: minio/minio
+    container_name: dormitory-minio
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  broker:
+    image: rabbitmq:3.12-management-alpine
+    container_name: dormitory-rabbitmq
+    restart: unless-stopped
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    image: vladlim100503/auth-svc:latest
+    container_name: dormitory-auth
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8081:8081"
+      - "50051:50051"
+
+  core-service:
+    image: vladlim100503/core-svc:latest
+    container_name: dormitory-core
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      storage:
+        condition: service_healthy
+      broker:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    ports:
+      - "8082:8082"
+    extra_hosts:
+      - "minio.localtest.me:host-gateway"
+
+  gateway-service:
+    image: vladlim100503/gateway-svc:latest
+    container_name: dormitory-gateway
+    restart: unless-stopped
+    depends_on:
+      - auth-service
+      - core-service
+    ports:
+      - "8080:8080"
+
+  frontend:
+    image: vladlim100503/frontend:latest
+    container_name: dormitory-frontend
+    restart: unless-stopped
+    depends_on:
+      - gateway-service
+    ports:
+      - "3000:80"
+
+volumes:
+  postgres_data:
+  minio_data:
+  rabbitmq_data:
