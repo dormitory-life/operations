@@ -90,6 +90,7 @@ make project-up
   - PostgreSQL
   - S3
   - RabbitMQ
+  - Redis
 - запускает сервисы `Auth`, `Core`, `Gateway` локально
 - запускает фронтенд
 
@@ -112,6 +113,7 @@ make project-container-up
   - PostgreSQL
   - S3
   - RabbitMQ
+  - Redis
 - собирает и поднимает контейнеры с сервисами:
   - `Auth`
   - `Core`

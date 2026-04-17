@@ -183,6 +183,54 @@ broker-container-down:
 	@echo "broker up"
 	@cd $(BROKER_COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml down -v
 
+
+cache-up:
+	@echo "cache up"
+	@cd $(COMPOSE_PATH) && docker compose up cache -d
+	@echo "Waiting for Redis to be ready..."
+	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
+		if cd $(COMPOSE_PATH) && docker compose exec -T cache redis-cli -a admin ping | grep PONG >/dev/null 2>&1; then \
+			echo "Redis is ready..."; \
+			break; \
+		fi; \
+		echo "   waiting for Redis ($$i/30)"; \
+		sleep 1; \
+		if [ $$i -eq 30 ]; then \
+			echo "Redis start error (timeout 30s)"; \
+			cd $(COMPOSE_PATH) && docker compose logs cache; \
+			exit 1; \
+		fi; \
+	done
+	@sleep 2
+
+
+cache-container-up:
+	@echo "cache up"
+	@cd $(COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml up cache -d
+	@echo "Waiting for Redis to be ready..."
+	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
+		if cd $(COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml exec -T cache redis-cli -a admin ping | grep PONG >/dev/null 2>&1; then \
+			echo "Redis is ready..."; \
+			break; \
+		fi; \
+		echo "   waiting for Redis ($$i/30)"; \
+		sleep 1; \
+		if [ $$i -eq 30 ]; then \
+			echo "Redis start error (timeout 30s)"; \
+			cd $(COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml logs cache; \
+			exit 1; \
+		fi; \
+	done
+	@sleep 2
+
+cache-down:
+	@echo "cache down"
+	@cd $(COMPOSE_PATH) && docker compose down cache -v
+
+cache-container-down:
+	@echo "cache down"
+	@cd $(COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml down cache -v
+
 infra-build:
 	@echo "infra build"
 	@cd $(COMPOSE_PATH) && docker compose build --no-cache
@@ -191,9 +239,9 @@ infra-container-build:
 	@echo "infra build"
 	@cd $(COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml build --no-cache
 
-infra-up: storage-up db-up broker-up
+infra-up: storage-up db-up broker-up cache-up
 
-infra-container-up: storage-container-up db-container-up broker-container-up
+infra-container-up: storage-container-up db-container-up broker-container-up cache-container-up
 
 infra-down:
 	@echo "infra down"
@@ -244,11 +292,12 @@ networks-up:
 	@docker network inspect auth-db >/dev/null 2>&1 || docker network create auth-db
 	@docker network inspect auth-gateway >/dev/null 2>&1 || docker network create auth-gateway
 	@docker network inspect auth-core >/dev/null 2>&1 || docker network create auth-core
+	@docker network inspect core-cache >/dev/null 2>&1 || docker network create core-cache
 	@echo "Networks created"
 
 networks-down:
 	@echo "Removing networks..."
-	@docker network rm core-gateway auth-gateway auth-core core-db auth-db core-s3 core-broker 2>/dev/null || true
+	@docker network rm core-gateway auth-gateway auth-core core-db auth-db core-s3 core-broker core-cache 2>/dev/null || true
 	@echo "Networks removed"
 
 front-run:

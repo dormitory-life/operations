@@ -38,7 +38,6 @@ MinIO Console: http://localhost:9001
 
 RabbitMQ Management: http://localhost:15672
 
-
 ## Механизм работы
 
 В docker-compose описан следующий порядок запуска сервисов:
@@ -46,10 +45,11 @@ RabbitMQ Management: http://localhost:15672
 1. db
 2. storage
 3. broker
-4. auth-service
-5. core-service
-6. gateway-service
-7. frontend (nginx)
+4. cache
+5. auth-service
+6. core-service
+7. gateway-service
+8. frontend (nginx)
 
 ## Примечания
 
