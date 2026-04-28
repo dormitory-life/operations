@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:15
+    container_name: dormitory-db
     environment:
       POSTGRES_DB: db
       POSTGRES_USER: user
@@ -36,7 +37,7 @@ services:
 
   broker:
     image: rabbitmq:3.12-management-alpine
-    container_name: rabbitmq
+    container_name: dormitory-rabbitmq
     restart: unless-stopped
     ports:
       - "5672:5672" # AMQP порт
@@ -54,7 +55,7 @@ services:
 
   cache:
     image: redis:7.0.11-alpine
-    container_name: cache
+    container_name: dormitory-cache
     restart: unless-stopped
     ports:
       - "6379:6379"
