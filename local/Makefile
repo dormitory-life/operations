@@ -19,7 +19,7 @@ db-up:
 	@cd $(DB_COMPOSE_PATH) && docker compose up db -d
 	@echo "waiting for db..."
 	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-		if docker exec dormitory-life-db-1 pg_isready -U user >/dev/null 2>&1; then \
+		if docker exec dormitory-db pg_isready -U user >/dev/null 2>&1; then \
 			echo "DB is ready..."; \
 			break; \
 		fi; \
@@ -37,7 +37,7 @@ db-container-up:
 	@cd $(DB_COMPOSE_PATH) && docker compose -f docker-compose-infra.yaml up db -d
 	@echo "waiting for db..."
 	@for i in 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30; do \
-		if docker exec dormitory-life-db-1 pg_isready -U user >/dev/null 2>&1; then \
+		if docker exec dormitory-db pg_isready -U user >/dev/null 2>&1; then \
 			echo "DB is ready..."; \
 			break; \
 		fi; \
